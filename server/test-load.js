@@ -1,0 +1,14 @@
+require('./validators');
+require('./routes/auth.routes');
+require('./routes/student.routes');
+require('./routes/teacher.routes');
+require('./routes/class.routes');
+require('./routes/subject.routes');
+require('./routes/exam.routes');
+require('./routes/mark.routes');
+require('./routes/attendance.routes');
+require('./routes/document.routes');
+require('./routes/notification.routes');
+require('./routes/setting.routes');
+require('./routes/dashboard.routes');
+console.log('ALL ROUTES LOADED OK');

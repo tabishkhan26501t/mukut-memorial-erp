@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: mukut-memorial-demo
+    env: node
+    plan: free
+    buildCommand: npm run install:all && cd server && npx prisma generate && cd ../client && npm run build
+    startCommand: cd server && npx prisma migrate deploy && node prisma/seed-demo.js && node index.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DEMO_MODE
+        value: true
+      - key: VITE_DEMO_MODE
+        value: true
+      - key: PORT
+        value: 5000
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+      - key: DEMO_RESET_TOKEN
+        generateValue: true
+      - key: FRONTEND_URL
+        value: https://mukut-memorial-demo.onrender.com

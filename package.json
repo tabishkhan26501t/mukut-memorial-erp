@@ -1,0 +1,24 @@
+{
+  "name": "school-erp",
+  "version": "1.0.0",
+  "description": "xyz school ltd - Enterprise Resource Planning System",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
+    "dev:server": "cd server && npm run dev",
+    "dev:client": "cd client && npm run dev",
+    "build": "cd client && npm run build",
+    "install:all": "npm install && cd server && npm install && cd ../client && npm install",
+    "db:migrate": "cd server && npx prisma migrate dev",
+    "db:push": "cd server && npx prisma db push",
+    "db:seed": "cd server && node prisma/seed.js",
+    "db:seed:demo": "cd server && node prisma/seed-demo.js",
+    "lint": "cd server && npm run lint && cd ../client && npm run lint",
+    "typecheck": "cd client && tsc -b --noEmit",
+    "server:lint": "cd server && npm run lint",
+    "client:lint": "cd client && npm run lint"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}

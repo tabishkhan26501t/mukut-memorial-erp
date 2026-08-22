@@ -1,0 +1,421 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                Int        @id @default(autoincrement())
+  name              String
+  email             String     @unique
+  password          String
+  phone             String?
+  photo             String?
+  isActive          Boolean    @default(true)
+  roleId            Int?
+  role              Role?      @relation(fields: [roleId], references: [id], onDelete: SetNull)
+  teacher           Teacher?   @relation(fields: [teacherId], references: [id], onDelete: SetNull)
+  teacherId         Int?       @unique
+  refreshToken      String?    @db.Text
+  resetToken        String?    @unique
+  resetTokenExpiry  DateTime?
+  lastLogin         DateTime?
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+}
+
+model Role {
+  id          Int              @id @default(autoincrement())
+  name        String           @unique
+  description String?
+  isSystem    Boolean          @default(false)
+  permissions RolePermission[]
+  users       User[]
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+}
+
+model Permission {
+  id          Int              @id @default(autoincrement())
+  name        String           @unique
+  module      String
+  description String?
+  roles       RolePermission[]
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+}
+
+model RolePermission {
+  id           Int        @id @default(autoincrement())
+  roleId       Int
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permissionId Int
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+  createdAt    DateTime   @default(now())
+
+  @@unique([roleId, permissionId])
+  @@index([permissionId])
+}
+
+model Class {
+  id             Int       @id @default(autoincrement())
+  name           String
+  section        String?
+  classTeacherId Int?
+  classTeacher   Teacher?  @relation(fields: [classTeacherId], references: [id], onDelete: SetNull)
+  students       Student[]
+  exams          Exam[]
+  subjects       Subject[]
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@unique([name, section])
+}
+
+model Subject {
+  id           Int           @id @default(autoincrement())
+  name         String
+  code         String?
+  classId      Int
+  class        Class         @relation(fields: [classId], references: [id], onDelete: Cascade)
+  marks        Mark[]
+  examSubjects ExamSubject[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  @@unique([name, classId])
+}
+
+model Student {
+  id               Int          @id @default(autoincrement())
+  admissionNo      String       @unique
+  rollNo           Int
+  name             String
+  dob              DateTime
+  gender           String
+  bloodGroup       String?
+  nationality      String       @default("Indian")
+  religion         String?
+  caste            String?
+  aadhaarNo        String?
+  motherAadhaar    String?
+  fatherAadhaar    String?
+  childId          String?
+  apaarId          String?
+  phone            String?
+  email            String?
+  address          String?
+  city             String?
+  state            String?
+  pinCode          String?
+  fatherName       String
+  fatherPhone      String?
+  fatherOccupation String?
+  motherName       String
+  motherPhone      String?
+  motherOccupation String?
+  guardianName     String?
+  guardianPhone    String?
+  photo            String?
+  classId          Int
+  class            Class        @relation(fields: [classId], references: [id], onDelete: Cascade)
+  isActive         Boolean      @default(true)
+  documents        Document[]
+  marks            Mark[]
+  attendance       Attendance[]
+  fees             Fee[]
+  transportAssignments StudentTransportAssignment[]
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+}
+
+model Fee {
+  id        Int      @id @default(autoincrement())
+  studentId Int
+  student   Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  amount    Decimal  @db.Decimal(10, 2)
+  paidAmount Decimal @db.Decimal(10, 2) @default(0)
+  dueDate   DateTime
+  status    String   @default("pending")
+  type      String   @default("tuition")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Teacher {
+  id            Int                 @id @default(autoincrement())
+  teacherId     String              @unique
+  name          String
+  email         String              @unique
+  phone         String?
+  gender        String?
+  dob           DateTime?
+  qualification String?
+  experience    Int?
+  joiningDate   DateTime?
+  salary        Decimal?            @db.Decimal(10, 2)
+  address       String?
+  city          String?
+  state         String?
+  pinCode       String?
+  photo         String?
+  bloodGroup    String?
+  subjects      String?
+  isActive      Boolean             @default(true)
+  classes       Class[]
+  attendance    TeacherAttendance[]
+  user          User?
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+}
+
+model Document {
+  id        Int      @id @default(autoincrement())
+  studentId Int
+  student   Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  type      String
+  fileName  String
+  filePath  String
+  fileSize  String?
+  mimeType  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([studentId, type])
+}
+
+model Exam {
+  id        Int           @id @default(autoincrement())
+  name      String
+  term      String?
+  type      String
+  startDate DateTime?
+  endDate   DateTime?
+  classId   Int
+  class     Class         @relation(fields: [classId], references: [id], onDelete: Cascade)
+  subjects  ExamSubject[]
+  marks     Mark[]
+  isActive  Boolean       @default(true)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+}
+
+model ExamSubject {
+  id           Int      @id @default(autoincrement())
+  examId       Int
+  exam         Exam     @relation(fields: [examId], references: [id], onDelete: Cascade)
+  subjectId    Int
+  subject      Subject  @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  maxMarks     Int      @default(100)
+  passingMarks Int      @default(33)
+  marks        Mark[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([examId, subjectId])
+}
+
+model Mark {
+  id            Int         @id @default(autoincrement())
+  examSubjectId Int
+  examSubject   ExamSubject @relation(fields: [examSubjectId], references: [id], onDelete: Cascade)
+  studentId     Int
+  student       Student     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  subjectId     Int
+  subject       Subject     @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  examId        Int
+  exam          Exam        @relation(fields: [examId], references: [id], onDelete: Cascade)
+  marksObtained Decimal?    @db.Decimal(6, 2)
+  grade         String?
+  remarks       String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@unique([examSubjectId, studentId])
+}
+
+model Attendance {
+  id        Int      @id @default(autoincrement())
+  studentId Int
+  student   Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  date      DateTime
+  status    String
+  remarks   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([studentId, date])
+}
+
+model TeacherAttendance {
+  id        Int      @id @default(autoincrement())
+  teacherId Int
+  teacher   Teacher  @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  date      DateTime
+  status    String
+  remarks   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([teacherId, date])
+}
+
+model Notification {
+  id         Int      @id @default(autoincrement())
+  title      String
+  message    String   @db.Text
+  type       String   @default("info")
+  targetRole String?
+  isRead     Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Setting {
+  id    Int    @id @default(autoincrement())
+  key   String @unique
+  value String @db.Text
+}
+
+model AuditLog {
+  id          Int      @id @default(autoincrement())
+  adminId     Int?
+  adminName   String
+  action      String
+  entity      String
+  entityId    String?
+  description String   @db.Text
+  ipAddress   String?
+  createdAt   DateTime @default(now())
+
+  @@index([entity])
+  @@index([action])
+  @@index([createdAt])
+}
+
+model Vehicle {
+  id               Int                @id @default(autoincrement())
+  vehicleId        String             @unique
+  registrationNumber String           @unique
+  type             String             @default("bus")
+  model            String?
+  manufacturer     String?
+  capacity         Int                @default(20)
+  status           String             @default("active")
+  purchaseDate     DateTime?
+  registrationDate DateTime?
+  notes            String?
+  driver           TransportStaff?    @relation("AssignedVehicle")
+  routes           TransportRoute[]
+  documents        VehicleDocument[]
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+
+  @@index([status])
+  @@index([registrationNumber])
+}
+
+model VehicleDocument {
+  id             Int      @id @default(autoincrement())
+  vehicleId      Int
+  vehicle        Vehicle  @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  type           String
+  documentNumber String?
+  issueDate      DateTime?
+  expiryDate     DateTime?
+  notes          String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([expiryDate])
+  @@index([vehicleId])
+}
+
+model TransportStaff {
+  id               Int           @id @default(autoincrement())
+  staffId          String        @unique
+  name             String
+  phone            String?
+  dob              DateTime?
+  address          String?
+  licenseNumber    String?       @unique
+  licenseCategory  String?
+  licenseExpiry    DateTime?
+  joiningDate      DateTime?
+  status           String        @default("active")
+  assignedVehicleId Int?       @unique
+  assignedVehicle  Vehicle?    @relation("AssignedVehicle", fields: [assignedVehicleId], references: [id], onDelete: SetNull)
+  emergencyContact String?
+  notes            String?
+  routes           TransportRoute[]
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  @@index([status])
+  @@index([licenseExpiry])
+}
+
+model TransportRoute {
+  id                Int                        @id @default(autoincrement())
+  routeCode         String                     @unique
+  name              String
+  status            String                     @default("active")
+  startPoint        String?
+  endPoint          String?
+  assignedVehicleId Int?
+  assignedVehicle   Vehicle?                   @relation(fields: [assignedVehicleId], references: [id], onDelete: SetNull)
+  assignedDriverId  Int?
+  assignedDriver    TransportStaff?            @relation(fields: [assignedDriverId], references: [id], onDelete: SetNull)
+  notes             String?
+  stops             TransportStop[]
+  assignments       StudentTransportAssignment[]
+  createdAt         DateTime                   @default(now())
+  updatedAt         DateTime                   @updatedAt
+
+  @@index([status])
+}
+
+model TransportStop {
+  id             Int                    @id @default(autoincrement())
+  routeId        Int
+  route          TransportRoute         @relation(fields: [routeId], references: [id], onDelete: Cascade)
+  name           String
+  sequence       Int
+  pickupTime     String?
+  dropTime       String?
+  landmark       String?
+  notes          String?
+  pickupAssignments StudentTransportAssignment[] @relation("PickupStop")
+  dropAssignments   StudentTransportAssignment[] @relation("DropStop")
+  createdAt      DateTime               @default(now())
+  updatedAt      DateTime               @updatedAt
+
+  @@index([routeId])
+  @@unique([routeId, name])
+}
+
+model StudentTransportAssignment {
+  id           Int                @id @default(autoincrement())
+  studentId    Int
+  student      Student            @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  routeId      Int
+  route        TransportRoute     @relation(fields: [routeId], references: [id], onDelete: Restrict)
+  pickupStopId Int
+  pickupStop   TransportStop      @relation("PickupStop", fields: [pickupStopId], references: [id], onDelete: Restrict)
+  dropStopId   Int
+  dropStop     TransportStop      @relation("DropStop", fields: [dropStopId], references: [id], onDelete: Restrict)
+  status       String             @default("active")
+  startDate    DateTime           @default(now())
+  endDate      DateTime?
+  feeAmount    Decimal?           @db.Decimal(10, 2)
+  feeDueDate   DateTime?
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+
+  @@index([studentId])
+  @@index([routeId])
+  @@index([status])
+}
