@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Plus, FileText } from 'lucide-react';
-import { transportService, transportStatusStyles, transportStatusLabel, TransportVehicle } from '@/services/transport.service';
+import { transportService, transportStatusStyles, transportStatusLabel, TransportVehicle, VehicleDocument } from '@/services/transport.service';
 import TransportNav from '@/components/transport/TransportNav';
 import DataTable from '@/components/ui/DataTable';
 import Modal from '@/components/ui/Modal';
@@ -31,7 +31,7 @@ export default function TransportVehicles() {
   const [docModalOpen, setDocModalOpen] = useState(false);
   const [docVehicle, setDocVehicle] = useState<TransportVehicle | null>(null);
   const [docForm, setDocForm] = useState<any>({ type: 'insurance', documentNumber: '', issueDate: '', expiryDate: '', notes: '' });
-  const [editingDoc, setEditingDoc] = useState<any>(null);
+  const [editingDoc, setEditingDoc] = useState<VehicleDocument | null>(null);
 
   const fetch = useCallback(async () => {
     setLoading(true);
@@ -105,7 +105,7 @@ export default function TransportVehicles() {
     }
   };
 
-  const removeDoc = async (doc: any) => {
+  const removeDoc = async (doc: VehicleDocument) => {
     try {
       await transportService.deleteDocument(doc.id);
       toast.success('Document deleted');
@@ -146,10 +146,10 @@ export default function TransportVehicles() {
       </div>
 
       <div className="card p-4 flex flex-wrap items-center gap-3">
-        <input type="text" className="input max-w-xs" placeholder="Search registration, ID, model..." value={search} onChange={(e) => { setSearch(e.target.value); setPagination((p) => ({ ...p, page: 1 })); }} />
-        <select className="select w-44" value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); setPagination((p) => ({ ...p, page: 1 })); }}>
+        <input type="text" className="input max-w-xs" placeholder="Search registration, ID, model..." value={search} onChange={(e: React.ChangeEvent<HTMLInputElement>) => { setSearch(e.target.value); setPagination((p: typeof pagination) => ({ ...p, page: 1 })); }} />
+        <select className="select w-44" value={statusFilter} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => { setStatusFilter(e.target.value); setPagination((p: typeof pagination) => ({ ...p, page: 1 })); }}>
           <option value="">All Statuses</option>
-          {vehicleStatuses.map((s) => <option key={s} value={s}>{transportStatusLabel[s]}</option>)}
+          {vehicleStatuses.map((s: string) => <option key={s} value={s}>{transportStatusLabel[s]}</option>)}
         </select>
         <div className="flex-1" />
         {hasPermission('TRANSPORT_CREATE') && (
@@ -164,8 +164,8 @@ export default function TransportVehicles() {
         data={vehicles}
         loading={loading}
         pagination={pagination}
-        onPageChange={(page) => setPagination((p) => ({ ...p, page }))}
-        onEdit={hasPermission('TRANSPORT_UPDATE') ? (v) => {
+        onPageChange={(page: number) => setPagination((p: typeof pagination) => ({ ...p, page }))}
+        onEdit={hasPermission('TRANSPORT_UPDATE') ? (v: TransportVehicle) => {
           setSelected(v);
           setFormData({
             vehicleId: v.vehicleId, registrationNumber: v.registrationNumber, type: v.type,
@@ -174,7 +174,7 @@ export default function TransportVehicles() {
           });
           setModalOpen(true);
         } : undefined}
-        onDelete={hasPermission('TRANSPORT_DELETE') ? (v) => { setConfirmTarget(v); setConfirmOpen(true); } : undefined}
+        onDelete={hasPermission('TRANSPORT_DELETE') ? (v: TransportVehicle) => { setConfirmTarget(v); setConfirmOpen(true); } : undefined}
       />
 
       <Modal isOpen={modalOpen} onClose={() => { setModalOpen(false); setSelected(null); }} title={selected ? 'Edit Vehicle' : 'Add Vehicle'} size="lg">
@@ -182,49 +182,49 @@ export default function TransportVehicles() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="label">Vehicle ID *</label>
-              <input type="text" className="input" value={formData.vehicleId} onChange={(e) => setFormData({ ...formData, vehicleId: e.target.value })} required />
+              <input type="text" className="input" value={formData.vehicleId} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, vehicleId: e.target.value })} required />
             </div>
             <div>
               <label className="label">Registration Number *</label>
-              <input type="text" className="input" value={formData.registrationNumber} onChange={(e) => setFormData({ ...formData, registrationNumber: e.target.value })} required />
+              <input type="text" className="input" value={formData.registrationNumber} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, registrationNumber: e.target.value })} required />
             </div>
             <div>
               <label className="label">Vehicle Type</label>
-              <select className="select" value={formData.type} onChange={(e) => setFormData({ ...formData, type: e.target.value })}>
-                {vehicleTypes.map((t) => <option key={t} value={t}>{t.replace('_', ' ').replace(/^./, (c) => c.toUpperCase())}</option>)}
+              <select className="select" value={formData.type} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setFormData({ ...formData, type: e.target.value })}>
+                {vehicleTypes.map((t: string) => <option key={t} value={t}>{t.replace('_', ' ').replace(/^./, (c: string) => c.toUpperCase())}</option>)}
               </select>
             </div>
             <div>
               <label className="label">Status</label>
-              <select className="select" value={formData.status} onChange={(e) => setFormData({ ...formData, status: e.target.value })}>
-                {vehicleStatuses.map((s) => <option key={s} value={s}>{transportStatusLabel[s]}</option>)}
+              <select className="select" value={formData.status} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setFormData({ ...formData, status: e.target.value })}>
+                {vehicleStatuses.map((s: string) => <option key={s} value={s}>{transportStatusLabel[s]}</option>)}
               </select>
             </div>
             <div>
               <label className="label">Model</label>
-              <input type="text" className="input" value={formData.model} onChange={(e) => setFormData({ ...formData, model: e.target.value })} />
+              <input type="text" className="input" value={formData.model} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, model: e.target.value })} />
             </div>
             <div>
               <label className="label">Manufacturer</label>
-              <input type="text" className="input" value={formData.manufacturer} onChange={(e) => setFormData({ ...formData, manufacturer: e.target.value })} />
+              <input type="text" className="input" value={formData.manufacturer} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, manufacturer: e.target.value })} />
             </div>
             <div>
               <label className="label">Capacity (seats) *</label>
-              <input type="number" min={1} className="input" value={formData.capacity} onChange={(e) => setFormData({ ...formData, capacity: e.target.value })} required />
+              <input type="number" min={1} className="input" value={formData.capacity} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, capacity: e.target.value })} required />
             </div>
             <div className="grid grid-cols-2 gap-4 col-span-1">
               <div>
                 <label className="label">Purchase Date</label>
-                <input type="date" className="input" value={formData.purchaseDate} onChange={(e) => setFormData({ ...formData, purchaseDate: e.target.value })} />
+                <input type="date" className="input" value={formData.purchaseDate} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, purchaseDate: e.target.value })} />
               </div>
               <div>
                 <label className="label">Registration Date</label>
-                <input type="date" className="input" value={formData.registrationDate} onChange={(e) => setFormData({ ...formData, registrationDate: e.target.value })} />
+                <input type="date" className="input" value={formData.registrationDate} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, registrationDate: e.target.value })} />
               </div>
             </div>
             <div className="md:col-span-2">
               <label className="label">Notes</label>
-              <textarea className="input" rows={2} value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} />
+              <textarea className="input" rows={2} value={formData.notes} onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setFormData({ ...formData, notes: e.target.value })} />
             </div>
           </div>
           <div className="flex justify-end gap-3 pt-4 border-t">
@@ -248,7 +248,7 @@ export default function TransportVehicles() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-surface-100 dark:divide-surface-800">
-                {(docVehicle?.documents || []).map((d) => (
+                {(docVehicle?.documents || []).map((d: VehicleDocument) => (
                   <tr key={d.id} className="hover:bg-surface-50 dark:hover:bg-surface-800/30">
                     <td className="table-cell capitalize">{d.type.replace('_', ' ')}</td>
                     <td className="table-cell">{d.documentNumber || '-'}</td>
@@ -278,25 +278,25 @@ export default function TransportVehicles() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
                   <label className="label">Document Type *</label>
-                  <select className="select" value={docForm.type} onChange={(e) => setDocForm({ ...docForm, type: e.target.value })}>
-                    {documentTypes.map((t) => <option key={t} value={t}>{t.replace('_', ' ').replace(/^./, (c) => c.toUpperCase())}</option>)}
+                  <select className="select" value={docForm.type} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setDocForm({ ...docForm, type: e.target.value })}>
+                    {documentTypes.map((t: string) => <option key={t} value={t}>{t.replace('_', ' ').replace(/^./, (c: string) => c.toUpperCase())}</option>)}
                   </select>
                 </div>
                 <div>
                   <label className="label">Document Number</label>
-                  <input type="text" className="input" value={docForm.documentNumber} onChange={(e) => setDocForm({ ...docForm, documentNumber: e.target.value })} />
+                  <input type="text" className="input" value={docForm.documentNumber} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDocForm({ ...docForm, documentNumber: e.target.value })} />
                 </div>
                 <div>
                   <label className="label">Issue Date</label>
-                  <input type="date" className="input" value={docForm.issueDate} onChange={(e) => setDocForm({ ...docForm, issueDate: e.target.value })} />
+                  <input type="date" className="input" value={docForm.issueDate} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDocForm({ ...docForm, issueDate: e.target.value })} />
                 </div>
                 <div>
                   <label className="label">Expiry Date</label>
-                  <input type="date" className="input" value={docForm.expiryDate} onChange={(e) => setDocForm({ ...docForm, expiryDate: e.target.value })} />
+                  <input type="date" className="input" value={docForm.expiryDate} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDocForm({ ...docForm, expiryDate: e.target.value })} />
                 </div>
                 <div className="md:col-span-2">
                   <label className="label">Notes</label>
-                  <input type="text" className="input" value={docForm.notes} onChange={(e) => setDocForm({ ...docForm, notes: e.target.value })} />
+                  <input type="text" className="input" value={docForm.notes} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDocForm({ ...docForm, notes: e.target.value })} />
                 </div>
               </div>
               <div className="flex justify-end gap-3">
