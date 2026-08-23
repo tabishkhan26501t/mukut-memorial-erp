@@ -31,6 +31,7 @@ const transportRoutes = require('./routes/transport.routes');
 const demoRoutes = require('./routes/demo.routes');
 
 const app = express();
+app.set('trust proxy', 1);
 const PORT = process.env.PORT || 5000;
 
 const envCheck = require('./utils/env').validateEnv();
