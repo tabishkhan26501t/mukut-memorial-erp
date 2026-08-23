@@ -8,19 +8,19 @@ CREATE TABLE Role (
     description VARCHAR(191) NULL,
     isSystem BOOLEAN NOT NULL DEFAULT false,
     createdAt DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    updatedAt DATETIME(3) NOT NULL,
+    updatedAt DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     PRIMARY KEY (id),
     UNIQUE INDEX Role_name_key(name)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
--- 3. Create Permission table (id, name, module, description, timestamps)
+-- 3. Create Permission table (id, name, description, timestamps)
 CREATE TABLE Permission (
     id INT NOT NULL AUTO_INCREMENT,
     name VARCHAR(191) NOT NULL,
     module VARCHAR(191) NOT NULL,
     description VARCHAR(191) NULL,
     createdAt DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    updatedAt DATETIME(3) NOT NULL,
+    updatedAt DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     PRIMARY KEY (id),
     UNIQUE INDEX Permission_name_key(name)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
