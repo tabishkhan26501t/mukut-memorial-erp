@@ -142,11 +142,16 @@ INSERT INTO `Permission` (`name`, `module`, `description`, `createdAt`, `updated
 ('TRANSPORT_REPORT_VIEW', 'Transport', 'View transport reports', CURRENT_TIMESTAMP(3), CURRENT_TIMESTAMP(3)),
 ('TRANSPORT_REPORT_PRINT', 'Transport', 'Print/PDF transport reports', CURRENT_TIMESTAMP(3), CURRENT_TIMESTAMP(3));
 
--- 8. Role -> permission mappings
+-- 8. Role -> permission mappings (idempotent: skip existing pairs)
 INSERT INTO `RolePermission` (`roleId`, `permissionId`, `createdAt`)
 SELECT r.id, p.id, CURRENT_TIMESTAMP(3)
 FROM `Role` r, `Permission` p
-WHERE (r.name = 'PRINCIPAL' AND p.name IN ('TRANSPORT_VIEW','TRANSPORT_CREATE','TRANSPORT_UPDATE','TRANSPORT_DELETE','TRANSPORT_FEES_VIEW','TRANSPORT_FEES_MANAGE','TRANSPORT_REPORT_VIEW','TRANSPORT_REPORT_PRINT'))
-   OR (r.name = 'ACCOUNTANT' AND p.name IN ('TRANSPORT_VIEW','TRANSPORT_FEES_VIEW','TRANSPORT_FEES_MANAGE','TRANSPORT_REPORT_VIEW','TRANSPORT_REPORT_PRINT'))
-   OR (r.name = 'RECEPTION' AND p.name IN ('TRANSPORT_VIEW'))
-   OR (r.name = 'TEACHER' AND p.name IN ('TRANSPORT_VIEW'));
+WHERE (
+       (r.name = 'PRINCIPAL' AND p.name IN ('TRANSPORT_VIEW','TRANSPORT_CREATE','TRANSPORT_UPDATE','TRANSPORT_DELETE','TRANSPORT_FEES_VIEW','TRANSPORT_FEES_MANAGE','TRANSPORT_REPORT_VIEW','TRANSPORT_REPORT_PRINT'))
+    OR (r.name = 'ACCOUNTANT' AND p.name IN ('TRANSPORT_VIEW','TRANSPORT_FEES_VIEW','TRANSPORT_FEES_MANAGE','TRANSPORT_REPORT_VIEW','TRANSPORT_REPORT_PRINT'))
+    OR (r.name = 'RECEPTION' AND p.name IN ('TRANSPORT_VIEW'))
+    OR (r.name = 'TEACHER' AND p.name IN ('TRANSPORT_VIEW'))
+)
+AND NOT EXISTS (
+    SELECT 1 FROM `RolePermission` rp WHERE rp.roleId = r.id AND rp.permissionId = p.id
+);
