@@ -27,7 +27,7 @@ export default function Marks() {
 
   useEffect(() => {
     setLoadingExams(true);
-    examService.getAll().then(d => setExams(Array.isArray(d) ? d : [])).catch(() => {}).finally(() => setLoadingExams(false));
+    examService.getAll().then(d => setExams(Array.isArray(d) ? d : (d?.exams || []))).catch(() => {}).finally(() => setLoadingExams(false));
   }, []);
 
   const loadExam = async () => {
